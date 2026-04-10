@@ -1,0 +1,218 @@
+// ========== Интерфейсы ==========
+
+interface Camera {
+    void takePhoto();
+}
+
+interface Radio {
+    void listenFM(); //
+}
+
+// ========== Абстрактный класс Phone ==========
+
+abstract class Phone {
+
+    private String model;
+    private int batteryLevel;
+    private static int totalPhones = 0;
+
+    public Phone(String model, int battery) {
+        this.model = model;
+        if (battery < 0) {
+            this.batteryLevel = 0;
+        } else if (battery > 100) {
+            this.batteryLevel = 100;
+        } else {
+            this.batteryLevel = battery;
+        }
+        totalPhones++;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public int getBattery() {
+        return batteryLevel;
+    }
+
+    public void setBattery(int newBattery) {
+        if (newBattery < 0) {
+            batteryLevel = 0;
+        } else if (newBattery > 100) {
+            batteryLevel = 100;
+        } else {
+            batteryLevel = newBattery;
+        }
+    }
+
+    public static int getTotalPhones() {
+        return totalPhones;
+    }
+
+    public abstract void call(String number);
+
+    public void charge(int minutes) {
+        System.out.println(model + " заряжается " + minutes + " минут...");
+        for (int i = 1; i <= minutes; i++) {
+            if (batteryLevel >= 100) {
+                System.out.println("Прекращаем зарядку.");
+                break;
+            }
+            batteryLevel = batteryLevel + 2;
+            if (batteryLevel > 100) {
+                batteryLevel = 100;
+            }
+            System.out.println("Минута " + i + ", заряд: " + batteryLevel + "%");
+        }
+        System.out.println("Зарядка закончена. Заряд: " + batteryLevel + "%");
+    }
+}
+
+// ========== Класс Smartphone (наследник Phone и реализует Camera) ==========
+
+class Smartphone extends Phone implements Camera {
+    private String operatingSystem;
+    private int freeMemory;
+
+    public Smartphone(String model, int battery, String os, int memory) {
+        super(model, battery);
+        operatingSystem = os;
+        freeMemory = memory;
+    }
+
+    @Override
+    public void call(String number) {
+        System.out.println(getModel() + " звонит на номер " + number);
+        if (getBattery() < 5) {
+            System.out.println("Слишком мало заряда");
+            return;
+        }
+        for (int sec = 1; sec <= 2; sec++) {
+            System.out.println("Разговор... " + sec + " сек");
+        }
+        setBattery(getBattery() - 2);
+        System.out.println("После звонка заряд: " + getBattery() + "%");
+    }
+
+    @Override
+    public void takePhoto() {
+        System.out.println(getModel() + " делает фотографию");
+        if (getBattery() < 10) {
+            System.out.println("Не хватает заряда для фото!");
+            return;
+        }
+        for (int percent = 0; percent <= 100; percent += 50) {
+            System.out.println("Обработка фото: " + percent + "%");
+        }
+        System.out.println("Фото сохранено!");
+        setBattery(getBattery() - 3);
+    }
+
+    public void installApp(String appName) {
+        System.out.println("Установка приложения " + appName);
+        if (freeMemory < 10) {
+            System.out.println("Недостаточно памяти!" + freeMemory + " ГБ");
+        } else {
+            System.out.println("Приложение установлено!");
+            freeMemory = freeMemory - 10;
+            System.out.println("Осталось памяти: " + freeMemory + " ГБ");
+        }
+    }
+}
+
+// ========== Класс FeaturePhone (старый телефон, наследник Phone и реализует Radio) ==========
+
+class FeaturePhone extends Phone implements Radio {
+    private boolean hasKeyboard;
+    private boolean hasAntenna;
+
+    public FeaturePhone(String model, int battery, boolean keyboard, boolean antenna) {
+        super(model, battery);
+        hasKeyboard = keyboard;
+        hasAntenna = antenna;
+    }
+
+    @Override
+    public void call(String number) {
+        System.out.println(getModel() + "набирает номер " + number);
+        if (getBattery() < 3) {
+            System.out.println("Заряд слишком низкий для звонка!");
+            return;
+        }
+        System.out.print("Набираем: ");
+        for (int i = 0; i < number.length(); i++) {
+            char c = number.charAt(i);
+            if (c >= '0' && c <= '9') {
+                System.out.print(c);
+            } else {
+                System.out.print("?");
+            }
+        }
+        System.out.println();
+        setBattery(getBattery() - 1);
+        System.out.println("Заряд после звонка: " + getBattery() + "%");
+    }
+
+    @Override
+    public void listenFM() {
+        System.out.println(getModel() + "включает FM-радио");
+        if (!hasAntenna) {
+            System.out.println("Нет антенны, радио не работает!");
+            return;
+        }
+        if (getBattery() < 5) {
+            System.out.println("Недостаточно заряда для радио!");
+            return;
+        }
+        for (int freq = 90; freq <= 108; freq += 9) {
+            System.out.println("Найдена станция на частоте " + freq + " MHz");
+        }
+        System.out.println("Радио играет...");
+        setBattery(getBattery() - 2);
+    }
+
+    public void sendSMS(String[] numbers) {
+        System.out.println("Отправка SMS...");
+        if (!hasKeyboard) {
+            System.out.println("У этого телефона нет клавиатуры, отправка SMS затруднена.");
+        }
+        int sentCount = 0;
+        for (String number : numbers) {
+            if (number == null || number.length() < 6) {
+                System.out.println("Пропускаем неверный номер: " + number);
+                continue;
+            }
+            System.out.println("Отправлено SMS на номер " + number);
+            sentCount++;
+        }
+        System.out.println("Всего отправлено SMS: " + sentCount);
+        setBattery(getBattery() - sentCount);
+        System.out.println("Заряд после отправки: " + getBattery() + "%");
+    }
+}
+
+// ========== Главный класс с методом main ==========
+
+public class Main {
+    public static void main(String[] args) {
+        Smartphone myPhone = new Smartphone("Xiaomi", 75, "Android", 32);
+        FeaturePhone oldPhone = new FeaturePhone("Nokia", 95, true, true);
+
+        System.out.println("Всего создано телефонов: " + Phone.getTotalPhones());
+        System.out.println();
+
+        myPhone.charge(3);
+        myPhone.call("+79991234567");
+        myPhone.takePhoto();
+        myPhone.installApp("MyGame");
+
+        System.out.println();
+
+        oldPhone.charge(2);
+        oldPhone.call("88005553535");
+        oldPhone.listenFM();
+        String[] smsNumbers = {"+79991112233", "123", null, "+79887776655"};
+        oldPhone.sendSMS(smsNumbers);
+    }
+}
